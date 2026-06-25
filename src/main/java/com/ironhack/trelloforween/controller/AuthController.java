@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ironhack.trelloforween.dto.TokenRefreshRequest;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -31,7 +30,7 @@ public class AuthController {
     }
 
     @PostMapping("/refreshtoken")
-    public ResponseEntity<AuthResponse> refreshtoken(@RequestBody TokenRefreshRequest request) {
-        return ResponseEntity.ok(authService.refreshToken(request.getRefreshToken()));
+    public ResponseEntity<AuthResponse> refreshtoken(@org.springframework.web.bind.annotation.RequestParam String refreshToken) {
+        return ResponseEntity.ok(authService.refreshToken(refreshToken));
     }
 }
