@@ -1,7 +1,6 @@
 package com.ironhack.trelloforween.config;
 
 import com.ironhack.trelloforween.repository.UserRepository;
-import com.ironhack.trelloforween.security.CustomOAuth2UserService;
 import com.ironhack.trelloforween.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -30,7 +29,6 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final CustomOAuth2UserService customOAuth2UserService;
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserRepository userRepository;
 
@@ -39,20 +37,17 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable()) // Disabled for testing/CRUD easily. In production, configure properly.
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**", "/api/invitations/accept**").permitAll()
+                .requestMatchers("/api/auth/**", "/api/invitations/accept**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .requestMatchers("/api/users/**", "/api/tasks/**", "/api/boards/**", "/api/invitations/**").authenticated()
                 .anyRequest().permitAll()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-            .oauth2Login(oauth2 -> oauth2
-                .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                .defaultSuccessUrl("http://localhost:5173", true) // Fallback or update if no frontend
-            );
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
 
     @Bean
     public UserDetailsService userDetailsService() {

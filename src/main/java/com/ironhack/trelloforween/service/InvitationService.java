@@ -42,11 +42,11 @@ public class InvitationService {
         String acceptLink = "http://localhost:8080/api/invitations/accept?token=" + token;
         
         String emailBody = String.format(
-            "Salam!\n\n%s sizi '%s' layihə lövhəsinə qoşulmağa dəvət edir.\n\nDəvəti qəbul etmək üçün aşağıdakı linkə daxil olun:\n%s\n\nTəşəkkürlər,\nTrelloForWeen Komandası",
+            "Hello!\n\n%s is inviting you to join the '%s' board.\n\nTo accept the invitation, please click the link below:\n%s\n\nThanks,\nTrelloForWeen Team",
             inviter.getName(), board.getName(), acceptLink
         );
 
-        emailService.sendEmail(inviteeEmail, "TrelloForWeen - Yeni Layihə Dəvəti", emailBody);
+        emailService.sendEmail(inviteeEmail, "TrelloForWeen - New Board Invitation", emailBody);
     }
 
     public String acceptInvitation(String token) {
@@ -54,7 +54,7 @@ public class InvitationService {
                 .orElseThrow(() -> new InvalidTokenException("Invalid invitation token"));
 
         if (!"PENDING".equals(invitation.getStatus())) {
-            throw new InvalidTokenException("Dəvət artıq qəbul edilib və ya rədd edilib.");
+            throw new InvalidTokenException("The invitation has already been accepted or rejected.");
         }
 
         invitation.setStatus("ACCEPTED");
@@ -63,6 +63,6 @@ public class InvitationService {
         // Here we could add logic to add user to a BoardMembers table
         // But for simplicity, we just mark it as ACCEPTED.
 
-        return "Dəvət uğurla qəbul edildi! İndi lövhəyə daxil ola bilərsiniz.";
+        return "Invitation accepted successfully! You can now access the board.";
     }
 }

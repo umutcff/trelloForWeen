@@ -25,9 +25,6 @@ public class User implements UserDetails {
     @Column(unique = true, nullable = false)
     private String email;
 
-    private String provider;
-    private String providerId;
-    
     private String password;
     
     @Column(name = "profile_picture")
