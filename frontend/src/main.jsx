@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { DndContext, PointerSensor, useDraggable, useDroppable, useSensor, useSensors } from '@dnd-kit/core';
@@ -322,9 +324,6 @@ function MyTasks({ tasks, setTasks }) {
     <div className="task-table"><div className="table-head"><span>Task</span><span>Project</span><span>Priority</span><span>Due date</span><span>Owner</span></div>{tasks.map(t => <div className="table-row" key={t.id}><button onClick={() => setTasks(xs => xs.map(x => x.id === t.id ? {...x, status: x.status === 'done' ? 'todo' : 'done'} : x))}>{t.status === 'done' ? <CheckCircle2 /> : <Circle />}</button><span><b>{t.title}</b><small>{t.code}</small></span><span>{t.project}</span><Priority value={t.priority} /><time>{t.due}</time><div className="mini-avatars">{t.assignees.map(u => <img src={u.avatar} key={u.id} />)}</div></div>)}</div>
   </div>;
 }
-
-import { Client } from '@stomp/stompjs';
-import SockJS from 'sockjs-client';
 
 function Chat({ notify, session }) {
   const [users, setUsers] = useState([]);
