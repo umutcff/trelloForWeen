@@ -1,6 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Client } from '@stomp/stompjs';
-import SockJS from 'sockjs-client';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { DndContext, PointerSensor, useDraggable, useDroppable, useSensor, useSensors } from '@dnd-kit/core';
@@ -108,7 +106,7 @@ function App() {
           <Route path="/boards" element={<Boards tasks={tasks} />} />
           <Route path="/boards/:id" element={<Board tasks={tasks} setTasks={setTasks} notify={notify} />} />
           <Route path="/tasks" element={<MyTasks tasks={tasks} setTasks={setTasks} />} />
-          <Route path="/chat" element={<Chat notify={notify} session={session} />} />
+          <Route path="/chat" element={<Chat notify={notify} />} />
           <Route path="/meetings" element={<Meetings notify={notify} />} />
           <Route path="/meetings/:id" element={<MeetingRoom />} />
           <Route path="/notifications" element={<Notifications notices={notices} setNotices={setNotices} />} />
@@ -325,138 +323,17 @@ function MyTasks({ tasks, setTasks }) {
   </div>;
 }
 
-function Chat({ notify, session }) {
-  const [users, setUsers] = useState([]);
-  const [groups, setGroups] = useState([]);
-  const [activeGroup, setActiveGroup] = useState(null);
-  const [messages, setMessages] = useState([]);
+function Chat({ notify }) {
+  const [messages, setMessages] = useState([
+    { id: 1, user: USERS[1], text: 'The launch narrative is finally clicking. I left the updated arc in the task.', time: '10:24' },
+    { id: 2, user: USERS[2], text: 'Nice. I can wire the new comparison block this afternoon ✦', time: '10:27' },
+    { id: 3, user: USERS[0], text: 'Perfect. Let’s do a quick review before the daily sync.', time: '10:31', mine: true },
+  ]);
   const [text, setText] = useState('');
-  const [wsClient, setWsClient] = useState(null);
-
-  const token = localStorage.getItem('taskflow_token');
-
-  useEffect(() => {
-    // Fetch Users
-    fetch(`${API_URL}/api/users`, { headers: { 'Authorization': `Bearer ${token}` } })
-      .then(r => r.ok ? r.json() : [])
-      .then(setUsers).catch(console.error);
-
-    // Fetch Groups
-    fetch(`${API_URL}/api/chat-groups`, { headers: { 'Authorization': `Bearer ${token}` } })
-      .then(r => r.ok ? r.json() : [])
-      .then(data => {
-        setGroups(data);
-        if (data.length > 0) setActiveGroup(data[0]);
-      }).catch(console.error);
-  }, [token]);
-
-  useEffect(() => {
-    if (!activeGroup) return;
-
-    // Fetch messages for active group
-    fetch(`${API_URL}/api/chat-groups/${activeGroup.id}/messages`, { headers: { 'Authorization': `Bearer ${token}` } })
-      .then(r => r.ok ? r.json() : [])
-      .then(setMessages).catch(console.error);
-
-    // Setup STOMP WebSocket
-    const client = new Client({
-      webSocketFactory: () => new SockJS(`${API_URL}/ws`),
-      reconnectDelay: 5000,
-    });
-
-    client.onConnect = () => {
-      client.subscribe(`/topic/chat/${activeGroup.id}`, (msg) => {
-        const newMsg = JSON.parse(msg.body);
-        setMessages(prev => [...prev, newMsg]);
-      });
-    };
-
-    client.activate();
-    setWsClient(client);
-
-    return () => {
-      client.deactivate();
-    };
-  }, [activeGroup, token]);
-
-  const send = async () => {
-    if (!text.trim() || !activeGroup) return;
-    const msgData = { content: text };
-    try {
-      await fetch(`${API_URL}/api/chat-groups/${activeGroup.id}/messages`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(msgData)
-      });
-      setText('');
-    } catch (e) {
-      console.error(e);
-      notify('Failed to send message');
-    }
-  };
-
-  const createGroup = async (user) => {
-    // Basic logic to create a DM group with this user
-    const newGroup = { name: `Chat with ${user.username}`, memberIds: String(user.id) };
-    try {
-      const res = await fetch(`${API_URL}/api/chat-groups`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(newGroup)
-      });
-      if (res.ok) {
-        const created = await res.json();
-        setGroups([...groups, created]);
-        setActiveGroup(created);
-        notify('Chat started');
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  return <div className="chat-layout card">
-    <aside className="chat-side">
-      <div className="chat-side-title"><h3>Messages</h3></div>
-      <p>CHATS & CHANNELS</p>
-      {groups.map((g, i) => <button className={activeGroup?.id === g.id ? 'active' : ''} key={g.id} onClick={() => setActiveGroup(g)}>
-        <Hash />{g.name}
-      </button>)}
-      <p>START DIRECT MESSAGE</p>
-      {users.filter(u => u.username !== session?.username).map(u => <button key={u.id} onClick={() => createGroup(u)}>
-        <span className="avatar-online"><img src={avatar(u.username)} /><i /></span>{u.name || u.username}
-      </button>)}
-    </aside>
-    <section className="chat-main">
-      <header>
-        <div><span className="hash-icon"><Hash /></span><span><b>{activeGroup?.name || 'Select a chat'}</b></span></div>
-      </header>
-      <div className="message-stream">
-        {messages.map(m => {
-          const mine = m.sender?.username === session?.username;
-          return <div className={`message ${mine ? 'mine' : ''}`} key={m.id}>
-            <img src={avatar(m.sender?.username || 'Unknown')} />
-            <div>
-              <p><b>{m.sender?.username}</b><time>{new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</time></p>
-              <span>{m.content}</span>
-            </div>
-          </div>;
-        })}
-      </div>
-      <div className="message-composer">
-        <div>
-          <button><Paperclip /></button>
-          <input value={text} onChange={e => setText(e.target.value)} onKeyDown={e => e.key === 'Enter' && send()} placeholder={activeGroup ? `Message ${activeGroup.name}` : "Select a chat first"} disabled={!activeGroup} />
-          <button className="send-btn" onClick={send} disabled={!activeGroup}><Send /></button>
-        </div>
-      </div>
-    </section>
+  const send = () => { if (!text.trim()) return; setMessages([...messages, { id: Date.now(), user: USERS[0], text, time: 'Now', mine: true }]); setText(''); notify('Message sent'); };
+  return <div className="chat-layout card"><aside className="chat-side"><div className="chat-side-title"><h3>Messages</h3><button><Plus /></button></div><div className="chat-search"><Search /><input placeholder="Search conversations" /></div><p>CHANNELS</p>{['company-wide','website-redesign','product-core','random'].map((x,i)=><button className={i===1?'active':''} key={x}><Hash />{x}{i===1&&<b>3</b>}</button>)}<p>DIRECT MESSAGES</p>{USERS.slice(1,5).map((u,i)=><button key={u.id}><span className="avatar-online"><img src={u.avatar}/><i /></span>{u.name}{i===0&&<b>2</b>}</button>)}</aside>
+    <section className="chat-main"><header><div><span className="hash-icon"><Hash /></span><span><b>website-redesign</b><small>Launch planning and design reviews</small></span></div><div><button><Users /> 9</button><button><Video /></button><button><MoreHorizontal /></button></div></header><div className="message-stream"><div className="date-divider"><span>Today</span></div>{messages.map(m=><div className={`message ${m.mine?'mine':''}`} key={m.id}><img src={m.user.avatar}/><div><p><b>{m.user.name}</b><time>{m.time}</time></p><span>{m.text}</span></div></div>)}</div><div className="message-composer"><div><button><Paperclip /></button><input value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()} placeholder="Message #website-redesign" /><button><Sparkles /></button><button className="send-btn" onClick={send}><Send /></button></div><small><b>↵</b> to send · <b>Shift ↵</b> for new line</small></div></section>
+    <aside className="chat-details"><div className="channel-orb"><Hash /></div><h3>website-redesign</h3><p>Everything about our new website launch.</p><div className="detail-stat"><span><b>9</b><small>Members</small></span><span><b>148</b><small>Files</small></span></div><button className="secondary-btn"><Users /> View members</button><div className="shared"><p>SHARED FILES <button>View all</button></p>{[['Launch-system.fig','18 MB'],['Brand-voice.pdf','4.2 MB'],['Homepage-copy.doc','825 KB']].map(([n,s])=><div key={n}><FileText /><span><b>{n}</b><small>{s}</small></span><button><ExternalLink /></button></div>)}</div></aside>
   </div>;
 }
 
