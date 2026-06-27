@@ -10,11 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TaskComment {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class TaskComment extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "task_id", nullable = false)
@@ -27,10 +23,4 @@ public class TaskComment {
     @Column(length = 2000, nullable = false)
     private String content;
 
-    private LocalDateTime createdAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
 }

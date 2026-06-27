@@ -10,11 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Attachment {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Attachment extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "task_id", nullable = false)

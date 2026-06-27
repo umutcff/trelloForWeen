@@ -9,11 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TaskLabel {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class TaskLabel extends BaseEntity {
 
     @Column(nullable = false)
     private String name;

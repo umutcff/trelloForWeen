@@ -11,11 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Invitation {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Invitation extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "board_id", nullable = false)
@@ -34,10 +30,4 @@ public class Invitation {
     @Column(nullable = false)
     private String status; // PENDING, ACCEPTED, REJECTED
     
-    private LocalDateTime createdAt;
-    
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-    }
 }

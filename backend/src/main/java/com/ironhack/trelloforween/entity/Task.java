@@ -11,11 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Task {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Task extends BaseEntity {
 
     @Column(nullable = false)
     private String title;
@@ -47,14 +43,6 @@ public class Task {
     @JoinColumn(name = "column_id")
     private BoardColumn column;
     
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-    
     @Column(name = "due_date")
     private LocalDateTime dueDate;
-
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-    }
 }

@@ -10,10 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Notification {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Notification extends BaseEntity {
 
     @Column(nullable = false)
     private String title;
@@ -28,10 +25,4 @@ public class Notification {
     @JoinColumn(name = "recipient_id")
     private User recipient;
 
-    private LocalDateTime createdAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
 }

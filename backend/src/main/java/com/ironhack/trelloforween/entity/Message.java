@@ -10,10 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Message {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Message extends BaseEntity {
 
     @Column(length = 2000, nullable = false)
     private String content;
@@ -29,10 +26,4 @@ public class Message {
     @JoinColumn(name = "chat_group_id")
     private ChatGroup chatGroup;
 
-    private LocalDateTime createdAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
 }

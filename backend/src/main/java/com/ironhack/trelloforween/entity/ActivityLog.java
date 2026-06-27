@@ -10,10 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ActivityLog {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class ActivityLog extends BaseEntity {
 
     private String action;
     private String entityType;
@@ -23,10 +20,5 @@ public class ActivityLog {
     @JoinColumn(name = "actor_id")
     private User actor;
 
-    private LocalDateTime createdAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
 }

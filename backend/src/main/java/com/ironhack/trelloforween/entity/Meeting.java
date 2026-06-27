@@ -11,10 +11,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Meeting {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Meeting extends BaseEntity {
 
     @Column(nullable = false)
     private String title;

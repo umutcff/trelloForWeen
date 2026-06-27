@@ -16,11 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User implements UserDetails {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class User extends BaseEntity implements UserDetails {
 
     private String firstName;
     private String lastName;
